@@ -1,0 +1,10 @@
+h home
+f fly
+s stop
+, scaleDown1.5
+. scaleUp1.5
+q ksldj
+z n - 1
+
+
+

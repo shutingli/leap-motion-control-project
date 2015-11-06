@@ -24,14 +24,13 @@
 #include <thread>
 #include "send.h"
 #include "conio.h"
+#include <stdio.h>  // for fprintf()
 
 using namespace std;
 using namespace Leap;
 
-#define BUFFSIZE 102
-#define PORTNUM 4578
-
-#define ROTSENS 2
+#define BUFFSIZE 102   
+#define ROTSENS 2    // totationsensitivity
 
 class SampleListener : public Listener {
   public:
@@ -52,10 +51,10 @@ class SampleListener : public Listener {
 const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
 const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle", "Distal"};
 const std::string stateNames[] = {"STATE_INVALID", "STATE_START", "STATE_UPDATE", "STATE_END"};
-bool singleFlag;
-int machineFlag;
-int sCounter;
-double scale = 1.0;
+bool singleFlag; // single typing mode or the whold command mode
+int sCounter; // count for the ... animation
+string hostName;  // save the machine name
+double scale = 1.0; // record the current scale 
 
 void SampleListener::onInit(const Controller& controller) {
   std::cout << "Initialized" << std::endl;
@@ -78,44 +77,50 @@ void SampleListener::onExit(const Controller& controller) {
   std::cout << "Exited" << std::endl;
 }
 
-
+// the function will send message in msg to the server using tcp socket
 void sendTcpMessage(const string msg){
 
   int TCPsock;
- 
-  
+  // setup the portname and hostname
+  const char *portname = "4578";
+  string info = hostName + ".ncsa.illinois.edu";
+  char *hostchar = new char[info.length() + 1];
+  strcpy(hostchar, info.c_str());
+  // prepare the message to be sent
   std::string x = msg;
   char buffer[x.size()];
   std::strcpy(buffer, x.c_str());
+  //initialize addrinfo 
+  struct addrinfo   ahints;
+  struct addrinfo  *aresults;
+  int       aerr;
 
-  struct sockaddr_in TCPserver;
+  // set up address-lookup hints.
+  memset( (void *)&ahints, 0, sizeof(ahints) );  // ensure that fields we don't fill in are all zero.
+  ahints.ai_family = PF_INET; // we want PF_INET addresses (IPv4)
+  ahints.ai_socktype = SOCK_STREAM;  // and TCP (stream) sockets
+
+  // look up given host name.
+  aerr = getaddrinfo( hostchar, portname, &ahints, &aresults );
+  delete [] hostchar;
+  //fprintf(stderr, "%n is received\n",&aerr);
+  if(aerr) {
+    cerr<< "Can't find host named " << hostName<<endl;
+  
+  }
+
   //init socket
         
-    if((TCPsock=socket(AF_INET, SOCK_STREAM, 0))<0) 
+    if((TCPsock=socket(PF_INET, SOCK_STREAM, 0))<0) 
         {
             cout<<"Failed to create TCP Socket"<<endl;
            
         } 
 
-  TCPserver.sin_family= AF_INET;
-  if (machineFlag == 1)
-  {
-    TCPserver.sin_addr.s_addr= inet_addr("141.142.212.5");
-  }
-  else if (machineFlag == 2)
-  {
-    TCPserver.sin_addr.s_addr= inet_addr("141.142.21.63");
-  }
-  else
-  {
-    TCPserver.sin_addr.s_addr= inet_addr("141.142.21.64");
-  }
-  TCPserver.sin_port = htons(4578); 
-
 
   //connecting socket server
-  if(connect(TCPsock,(struct sockaddr*) &TCPserver, sizeof(TCPserver))!=0){
-  std::cout<<"Failed to connect UDP Socket"<<endl;
+  if(connect(TCPsock,aresults->ai_addr, aresults->ai_addrlen)!=0){
+  std::cout<<"Failed to connect TCP Socket"<<endl;
   }
   send(TCPsock, buffer, x.size(),0);
   
@@ -124,34 +129,47 @@ void sendTcpMessage(const string msg){
   
 
 }
+// the function will send message in msg to the server using udp socket
 void sendUdpMessage(const string msg){
-
+  // prepare the message to be sent
   int UDPsock;
- 
-  
   std::string x = msg;
   char buffer[x.size()];
   std::strcpy(buffer, x.c_str());
+  // set up the portname and hostname
+  const char *portname = "4578";
+  string info = hostName + ".ncsa.illinois.edu";
+  char *hostchar = new char[info.length() + 1];
+  strcpy(hostchar, info.c_str());
+  // initialize struct info
+  struct addrinfo   ahints;
+  struct addrinfo  *aresults;
+  int       aerr;
 
+  // set up address-lookup hints.
+  memset( (void *)&ahints, 0, sizeof(ahints) );  // ensure that fields we don't fill in are all zero.
+  ahints.ai_family = PF_INET; // we want PF_INET addresses (IPv4)
+  ahints.ai_socktype = SOCK_STREAM;  // and TCP (stream) sockets
 
-  struct sockaddr_in UDPserver;
-
+  // look up given host name.
+  aerr = getaddrinfo( hostchar, portname, &ahints, &aresults );
+  delete [] hostchar;
+  //fprintf(stderr, "%n is received\n",&aerr);
+  if(aerr) {
+    cerr<< "Can't find host named " << hostName<<endl;
+ 
+  }
 
   //init socket
     if((UDPsock=socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP))<0) 
     {
         cerr<<"Failed to create UDP Socket"<<endl;
        
-    }
-
-  // set up the server addr
-  UDPserver.sin_family= AF_INET;
-  UDPserver.sin_addr.s_addr= inet_addr("141.142.21.63");
-  UDPserver.sin_port = htons(4578); 
+    } 
   
 
   //connecting socket server
-  if (connect(UDPsock,(struct sockaddr*) &UDPserver, sizeof(UDPserver))!=0){
+  if (connect(UDPsock,aresults->ai_addr, aresults->ai_addrlen)!=0){
      std::cout<<"Failed to connect UDP Socket"<<endl;
   }
   
@@ -161,12 +179,13 @@ void sendUdpMessage(const string msg){
   
 
 }
-
+// send stop message to the server to reset all the status
 void sendStopMessage(){
   sendUdpMessage("NAVIGATION : 0 0 0 0 81 0");
   sendTcpMessage("VIRDIR COMMAND : stop");
 }
 
+// the function will use the input and flag to prepare the message to be sent to the server.
 void getKey(char a, bool singleFlag){
   if(singleFlag){
     //change char to string 
@@ -213,7 +232,7 @@ void getKey(char a, bool singleFlag){
   }
 
 }
-
+// the function will continuously monitor the keyboard
 void keepListen(){
   while(1){
   // get the single key stroke
@@ -244,6 +263,7 @@ void keepListen(){
   }// while loop ends
 }
 
+//The function will deal with Leap Motion so that we can get all the hand gesture info
 void SampleListener::onFrame(const Controller& controller) {
   // Get the most recent frame and report some basic information
   const Frame frame = controller.frame();
@@ -272,11 +292,12 @@ void SampleListener::onFrame(const Controller& controller) {
     const Vector direction = hand.direction();
     const Vector palmPosition = hand.palmPosition();
     std::stringstream ss;
+    // set the navigation message
     ss << "NAVIGATION : "<<palmPosition[0]<<" "
     << (palmPosition[1]-280)<<" "<<(1.1*palmPosition[2])<<" "
     << (direction[1]*180/3.1415 * ROTSENS)<<" "<< (81 + ROTSENS*normal.roll() * RAD_TO_DEG)
     <<" "<<(-direction.yaw() * RAD_TO_DEG * ROTSENS );
-     //   ss << "NAVIGATION : "<<" 0 0 0 0 81 "<<direction.yaw() * RAD_TO_DEG;
+     
 
     std::string msg = ss.str();
     
@@ -437,20 +458,40 @@ int main(int argc, char** argv) {
 
   char input;
   std::cout << "Type corresponding number and press enter to choose a machine."<<std::endl;
-  std::cout <<" 1.tone 2.trapeze (room 1005) 3.mangala (room 2019)"<< std::endl;
-  input = getche();
-  switch (input){
-    case '1':
-          machineFlag=0;
-          break;
-    case '2':
-          machineFlag=1;
-          break;
-    case '3':
-          machineFlag=2;
-          break;
+  std::cout << "Ctl+C to exit the program"<<std::endl;
+  ifstream file;
+  file.open("machines.txt");
+  string line;
+  string oldLine;
+  int countMachine=0;
+  string *machines = new string[10];
+  
+  // read the machines file to print out all the machines' names
+  if (file.is_open())
+  {
+    while (!file.eof()) {
+    file >> line;
+    if (oldLine !=line)
+      {
+      cout << countMachine << ". "<< line<<" ";
+      machines[countMachine]=line;
+      countMachine++;
+      oldLine = line;
+      }
+    }    
+    file.close();
   }
-
+  else 
+    {
+      cout << "Error: Unable to open file";
+    }
+  std::cout << std::endl;
+  //get the input and set hostName
+  input = getche();
+  countMachine = input -'0'; // accept 0-9
+  hostName = machines[countMachine];
+  
+  delete [] machines;
   // Create a sample listener and controller
   SampleListener listener;
   Controller controller;

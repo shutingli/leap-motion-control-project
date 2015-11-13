@@ -54,7 +54,7 @@ const std::string stateNames[] = {"STATE_INVALID", "STATE_START", "STATE_UPDATE"
 bool singleFlag; // single typing mode or the whold command mode
 int sCounter; // count for the ... animation
 string hostName;  // save the machine name
-double scale = 1.0; // record the current scale 
+double rot = 1.0; // record the current scale 
 
 void SampleListener::onInit(const Controller& controller) {
   std::cout << "Initialized" << std::endl;
@@ -83,7 +83,7 @@ void sendTcpMessage(const string msg){
   int TCPsock;
   // setup the portname and hostname
   const char *portname = "4578";
-  string info = hostName + ".ncsa.illinois.edu";
+  string info = hostName;
   char *hostchar = new char[info.length() + 1];
   strcpy(hostchar, info.c_str());
   // prepare the message to be sent
@@ -138,7 +138,7 @@ void sendUdpMessage(const string msg){
   std::strcpy(buffer, x.c_str());
   // set up the portname and hostname
   const char *portname = "4578";
-  string info = hostName + ".ncsa.illinois.edu";
+  string info = hostName;
   char *hostchar = new char[info.length() + 1];
   strcpy(hostchar, info.c_str());
   // initialize struct info
@@ -204,20 +204,22 @@ void getKey(char a, bool singleFlag){
         if (left == s)
         {
           right = line.substr(2);
-          size_t found = right.find("scale");
+          size_t found = right.find("rot");
           if (found!=std::string::npos)
           {
             found = right.find("Down");
-            right = right.substr(9);
+            
             if (found!=std::string::npos)
             {
-              scale = scale/std::stod(right); 
-              right = "scale " + std::to_string(scale);
+              right = right.substr(7);
+              rot = rot/std::stod(right); 
+              right = "set leap1 rotationsensitivity " + std::to_string(rot);
             }
             else
            {   
-              scale = scale*std::stod(right);
-              right = "scale " + std::to_string(scale); 
+              right = right.substr(5);
+              rot = rot*std::stod(right); 
+              right = "set leap1 rotationsensitivity " + std::to_string(rot); 
             }           
           }                   
           string command = "VIRDIR COMMAND : ";
@@ -296,7 +298,7 @@ void SampleListener::onFrame(const Controller& controller) {
     ss << "NAVIGATION : "<<palmPosition[0]<<" "
     << (palmPosition[1]-280)<<" "<<(1.1*palmPosition[2])<<" "
     << (direction[1]*180/3.1415 * ROTSENS)<<" "<< (81 + ROTSENS*normal.roll() * RAD_TO_DEG)
-    <<" "<<(-direction.yaw() * RAD_TO_DEG * ROTSENS );
+    <<" "<<(direction.yaw() * RAD_TO_DEG * ROTSENS );
      
 
     std::string msg = ss.str();
@@ -473,7 +475,7 @@ int main(int argc, char** argv) {
     file >> line;
     if (oldLine !=line)
       {
-      cout << countMachine << ". "<< line<<" ";
+      cout << countMachine << ". "<< line<<" "<<endl;
       machines[countMachine]=line;
       countMachine++;
       oldLine = line;
@@ -490,12 +492,13 @@ int main(int argc, char** argv) {
   input = getche();
   countMachine = input -'0'; // accept 0-9
   hostName = machines[countMachine];
-  
+
   delete [] machines;
   // Create a sample listener and controller
   SampleListener listener;
   Controller controller;
   sendStopMessage();
+  sendTcpMessage("set leap1 rotationsensitivity 1");
   
   // Have the sample listener receive events from the controller
   controller.addListener(listener);

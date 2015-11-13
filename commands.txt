@@ -1,9 +1,10 @@
 h home
 f fly
 s stop
-, scaleDown1.5
-. scaleUp1.5
-q ksldj
+, scaleDown 1.5
+. scaleUp 1.5
+- rotDown1.5
+= rotUp1.5
 z n - 1
 
 

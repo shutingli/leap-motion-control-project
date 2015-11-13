@@ -1,4 +1,4 @@
-tone
-mangala
-trapeze
+tone.ncsa.illinois.edu
+mangala.ncsa.illinois.edu
+trapeze.ncsa.illinois.edu
 

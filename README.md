@@ -12,16 +12,16 @@ To run the project:
 
 When the project starts running, choose the machine :
   1. Type the number  
-  * 1 for tone (default if the project get anything else)
-  * 2 for trapenze 
-  * 3 for mangala
+    * 1 for tone (default if the project get anything else)
+    * 2 for trapenze 
+    * 3 for mangala
   2. Commands shortcut 
-  * f for fly
-  * s for stop
-  * h for home
-  * q for quit keystroke mode
-  * , for scale down
-  * . for scale up
+    * f for fly
+    * s for stop
+    * h for home
+    * q for quit keystroke mode
+    * , for scale down
+    * . for scale up
 
 use “commands.txt” to edit keystroke command
 type the whole command and enter

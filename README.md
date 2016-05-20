@@ -5,10 +5,10 @@ Always make sure the leap icon in top right corner is green.
 https://www.leapmotion.com/setup
 
 To run the project:
-1. Open the terminal, cd to the folder "leap project"
-2. Make
-3. Open virtual director
-4. Run ./control
+  1. Open the terminal, cd to the folder "leap project"
+  2. Make
+  3. Open virtual director
+  4. Run ./control
 
 When the project is running:
 1. Type the number  

@@ -10,7 +10,15 @@ To run the project:
 3. make
 4. open virtual director
 5. ./control
-
+1. Make my changes
+  1. Fix bug
+  2. Improve formatting
+    * Make the headings bigger
+2. Push my commits to GitHub
+3. Open a pull request
+  * Describe my changes
+  * Mention all the members of my team
+    * Ask for feedback
 When the project is running:
 1. type 
 	- 1 for tone 

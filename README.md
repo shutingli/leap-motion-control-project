@@ -1,5 +1,4 @@
 # leap-motion-control-project
-readme.txt
 
 Install leap motion before running the project.
 Always make sure the leap icon in top right corner is green.
@@ -13,14 +12,16 @@ To run the project:
 5. ./control
 
 When the project is running:
-1. type 1 for tone 
-		2 for trapenze 
-		3 for mangala
+1. type 
+	- 1 for tone 
+	- 2 for trapenze 
+	- 3 for mangala
 	tone is the default machine if the project get anything else
-2. type f for fly
-		s for stop
-		h for home
-		q for quit keystroke mode
+2. type 
+	- f for fly
+	- s for stop
+	- h for home
+	- q for quit keystroke mode
 
    use “commands.txt” to edit keystroke command
 
